@@ -32,7 +32,7 @@ struct ContentView: View {
 					.edgesIgnoringSafeArea(.all)
 				VStack {
 					HStack {
-						UtilityButton(imageName: "arrow.left")
+						UtilityButton(imageName: "arrow.left", size: 50, symbolConfig: .navButtonConfig)
 							.padding(.leading, 40)
 						Spacer()
 						Text("NOW PLAYING")
@@ -40,13 +40,13 @@ struct ContentView: View {
 							.font(Font.system(.headline)
 								.smallCaps())
 						Spacer()
-						UtilityButton(imageName: "line.horizontal.3")
+						UtilityButton(imageName: "line.horizontal.3", size: 50, symbolConfig: .navButtonConfig)
 							.padding(.trailing, 40)
 					}
 
 					CoverArtView(size: geometry.size.width * 0.8)
 						.padding(.top, 16)
-						.padding(.bottom, 35)
+						.padding(.bottom, 10)
 
 					Text(self.song.title)
 						.font(Font.system(.title).weight(.semibold))
@@ -63,9 +63,20 @@ struct ContentView: View {
 
 					Spacer()
 
-					PlayPauseButton()
-						.frame(width: 80, height: 80)
-						.padding(.bottom, 30)
+					HStack {
+						Spacer()
+						UtilityButton(imageName: "backward.fill",
+									  size: 70,
+									  symbolConfig: .playbackControlsConfig)
+						PlayPauseButton()
+							.frame(width: 80, height: 80)
+							.padding(.horizontal, 14)
+						UtilityButton(imageName: "forward.fill",
+									  size: 70,
+									  symbolConfig: .playbackControlsConfig)
+						Spacer()
+					}
+					.padding(.bottom, 25)
 				}
 			}
 		}
@@ -119,6 +130,8 @@ struct ContentView_Previews: PreviewProvider {
 struct UtilityButton: View {
 
 	var imageName: String
+	var size: CGFloat
+	var symbolConfig: UIImage.SymbolConfiguration
 
 	var body: some View {
 		Button(action: {
@@ -132,15 +145,15 @@ struct UtilityButton: View {
 					]),
 										 startPoint: .bottomTrailing,
 										 endPoint: .topLeading))
-					.frame(width: 50, height: 50)
+					.frame(width: size, height: size)
 				
-				Image(systemName: imageName)
-					.resizable()
+				Image(uiImage: UIImage(systemName: imageName, withConfiguration: symbolConfig)!)
+//					.resizable()
 					.font(Font.system(.headline).weight(.bold))
 					.aspectRatio(contentMode: .fit)
 					.foregroundColor(.buttonColor)
-					.frame(width: 20, height: 20)
-					.padding(12)
+					.frame(width: size * 0.90, height: size * 0.90)
+//					.padding(12)
 					.background(
 						LinearGradient(gradient: Gradient(colors: [.bgGradientTop, .bgGradientBottom]),
 									   startPoint: .topLeading,
@@ -184,6 +197,13 @@ struct CoverArtView: View {
 
 struct PlayerProgressView: View {
 
+	var dateFormatter: DateFormatter = {
+		let formatter = DateFormatter()
+		formatter.dateFormat = "m:ss"
+		formatter.timeZone = TimeZone(secondsFromGMT: 0)
+		return formatter
+	}()
+
 	@ObservedObject var song: Song
 
 	var trackRadius: CGFloat = 3
@@ -191,9 +211,9 @@ struct PlayerProgressView: View {
 	var body: some View {
 		VStack {
 			HStack {
-				Text("\(Int(self.song.currentTime))")
+				Text("\(formattedTimeFor(timeInterval: song.currentTime))")
 				Spacer()
-				Text("\(Int(self.song.duration))")
+				Text("\(formattedTimeFor(timeInterval: song.duration))")
 			}
 			.foregroundColor(.buttonColor)
 			.font(Font.system(.caption))
@@ -215,7 +235,7 @@ struct PlayerProgressView: View {
 												 endPoint: .trailing))
 							.frame(width: geometry.size.width * self.percentageCompleteForSong(),
 								   height: self.trackRadius * 2)
-						Spacer()
+						Spacer(minLength: 0)
 					}
 				}
 
@@ -237,12 +257,18 @@ struct PlayerProgressView: View {
 										self.song.currentTime = self.time(for: value.location.x, in: geometry.size.width)
 									})
 						)
-                        Spacer()
+                        Spacer(minLength: 0)
                     }
                 }
 			}
+		.frame(height: 40)
 		}
 		.padding(.horizontal, 30)
+	}
+
+	func formattedTimeFor(timeInterval: TimeInterval) -> String {
+		let date = Date(timeIntervalSinceReferenceDate: timeInterval)
+		return dateFormatter.string(from: date)
 	}
 
 	func time(for location: CGFloat, in width: CGFloat) -> TimeInterval {
