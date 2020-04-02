@@ -17,4 +17,5 @@ extension Color {
 	static let pauseLightOrange = Color("pauseLightOrange")
 	static let trackOrange = Color("trackOrange")
 	static let trackYellow = Color("trackYellow")
+	static let bgGradientCellMedium = Color("bgGradientCellMedium")
 }
